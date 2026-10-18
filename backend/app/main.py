@@ -1,6 +1,9 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+
+from app.database import engine
 
 app = FastAPI(title="Kashif API")
 
@@ -12,6 +15,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "kashif-backend"}
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        db_status = "ok"
+    except Exception:
+        db_status = "unavailable"
+    return {"status": "ok", "service": "kashif-backend", "database": db_status}

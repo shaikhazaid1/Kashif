@@ -1,5 +1,23 @@
 # Runs the whole Kashif system with: docker compose up --build
+# Values like ${POSTGRES_USER} are read from the .env file next to this one.
 services:
+  db:
+    image: postgres:18-alpine
+    container_name: kashif-db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - kashif_db_data:/var/lib/postgresql   # data survives restarts
+    # No "ports" on purpose: the database is reachable only from inside
+    # the Docker network (by the backend), never from outside.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   backend:
     build: ./backend
     container_name: kashif-backend
@@ -8,7 +26,12 @@ services:
     volumes:
       - ./backend:/app         # live code changes without rebuilding
     environment:
-      - FRONTEND_ORIGIN=http://localhost:5173   # used later for CORS
+      - FRONTEND_ORIGIN=http://localhost:5173
+      - WATCHFILES_FORCE_POLLING=true   # needed for Docker on Windows
+      - DATABASE_URL=postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      db:
+        condition: service_healthy   # wait until the database is ready
 
   frontend:
     build: ./frontend
@@ -22,3 +45,6 @@ services:
       - VITE_API_URL=http://localhost:8000      # the browser calls the API here
     depends_on:
       - backend
+
+volumes:
+  kashif_db_data:
