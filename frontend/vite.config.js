@@ -5,7 +5,13 @@ export default defineConfig({
   plugins: [react()],
   server: {
     watch: {
-      usePolling: true, // needed for Docker on Windows
+      usePolling: true,
+    },
+    proxy: {
+      '/api': {
+        target: 'http://backend:8000',
+        changeOrigin: true,
+      },
     },
   },
 })
