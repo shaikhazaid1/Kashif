@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from app.auth import models  # noqa: F401
+from app.auth.router import router as auth_router
 from app.core.database import Base, engine
 
 
@@ -16,6 +17,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Kashif API", lifespan=lifespan)
+app.include_router(auth_router)
 
 app.add_middleware(
     CORSMiddleware,
