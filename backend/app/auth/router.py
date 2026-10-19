@@ -3,9 +3,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth.models import Role, User
-from app.auth.schemas import RegisterRequest, UserOut
 from app.core.database import get_db
-from app.core.security import hash_password
+from app.auth.schemas import LoginRequest, RegisterRequest, UserOut
+from app.core.security import DUMMY_HASH, hash_password, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -27,3 +27,17 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     return user
+
+@router.post("/login")
+def login(data: LoginRequest, db: Session = Depends(get_db)):
+    email = data.email.lower()
+    user = db.scalar(select(User).where(User.email == email))
+
+    if user is None:
+        verify_password(data.password, DUMMY_HASH)
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+    if not verify_password(data.password, user.password_hash) or not user.is_active:
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+    return {"message": "Login successful", "role": user.role}
