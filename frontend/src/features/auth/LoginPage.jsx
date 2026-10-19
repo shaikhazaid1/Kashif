@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { login } from './authApi.js'
+import { Link } from 'react-router'
 import './auth.css'
 
 function LoginPage() {
@@ -85,7 +86,7 @@ function LoginPage() {
         </form>
 
         <p className="auth__switch">
-          Don't have an account? <a href="#">Create one</a>
+          Don't have an account? <Link to="/register">Create one</Link>
         </p>
       </section>
     </div>
