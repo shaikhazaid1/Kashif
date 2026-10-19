@@ -39,7 +39,7 @@
 
 .auth__subtitle {
     color: var(--color-text-muted);
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--space-6);
 }
 
 .auth__form {
@@ -92,6 +92,7 @@
         padding-inline: max(var(--space-6), calc((100% - 380px) / 2));
         scrollbar-width: thin;
         scrollbar-color: var(--color-border) transparent;
+        padding-block: var(--space-4);
     }
 
     .auth__form-side> :first-child {
