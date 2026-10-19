@@ -3,6 +3,8 @@
     --color-primary: #1E3A5F;
     --color-primary-hover: #16304F;
     --color-on-primary: #FFFFFF;
+    --color-overlay: #16304F;
+    --color-link: var(--color-primary);
 
     /* ===== Surfaces ===== */
     --color-bg: #F7F8FA;
@@ -51,4 +53,33 @@
 
     /* ===== Focus ===== */
     --focus-ring: 0 0 0 3px rgba(30, 58, 95, 0.35);
+    --topbar-height: 64px;
+}
+
+
+/* ===== Dark theme ===== */
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --color-primary: #3A6A9F;
+    --color-primary-hover: #2F5A88;
+    --color-on-primary: #FFFFFF;
+
+    --color-bg: #0F1720;
+    --color-surface: #17212C;
+    --color-border: #2A3644;
+
+    --color-text: #E6EAF0;
+    --color-text-muted: #9AA6B4;
+    --color-link: #8DB4E2;
+
+    --color-safe: #4ADE80;
+    --color-safe-bg: #0F2E1C;
+    --color-suspicious: #FBBF24;
+    --color-suspicious-bg: #33270A;
+    --color-danger: #F87171;
+    --color-danger-bg: #3A1414;
+
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --focus-ring: 0 0 0 3px rgba(141, 180, 226, 0.5);
 }
