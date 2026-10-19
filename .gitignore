@@ -11,3 +11,6 @@ dist/
 
 # Docker
 docker-compose.override.yml
+
+# Temporary: waiting for image permission
+frontend/src/assets/images/auth-pearls.jpg
