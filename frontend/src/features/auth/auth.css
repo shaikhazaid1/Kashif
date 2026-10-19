@@ -32,3 +32,15 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
 }
+
+.auth__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 480px) {
+  .auth__row {
+    grid-template-columns: 1fr;
+  }
+}

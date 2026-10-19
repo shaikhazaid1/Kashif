@@ -5,10 +5,12 @@ export function login(email, password) {
 }
 
 
-export function register(fullName, email, password) {
+export function register({ firstName, lastName, email, phone, password }) {
   return apiPost('/api/auth/register', {
-    full_name: fullName,
+    first_name: firstName,
+    last_name: lastName,
     email,
+    phone,
     password,
   })
 }

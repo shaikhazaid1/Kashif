@@ -7,7 +7,9 @@ import PasswordStrength from './components/PasswordStrength.jsx'
 
 function RegisterPage() {
     const navigate = useNavigate()
-    const [fullName, setFullName] = useState('')
+    const [firstName, setFirstName] = useState('')
+    const [lastName, setLastName] = useState('')
+    const [phone, setPhone] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -27,7 +29,7 @@ function RegisterPage() {
 
         setIsSubmitting(true)
         try {
-            await register(fullName, email, password)
+            await register({ firstName, lastName, email, phone, password })
             navigate('/login', { state: { registered: true } })
         } catch (err) {
             setError(err.message)
@@ -51,20 +53,38 @@ function RegisterPage() {
                         </div>
                     )}
 
-                    <div className="field">
-                        <label className="field__label" htmlFor="fullName">Full name</label>
-                        <input
-                            id="fullName"
-                            name="fullName"
-                            type="text"
-                            className="input"
-                            autoComplete="name"
-                            minLength={2}
-                            maxLength={150}
-                            required
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                        />
+                    <div className="auth__row">
+                        <div className="field">
+                            <label className="field__label" htmlFor="firstName">First name</label>
+                            <input
+                                id="firstName"
+                                name="firstName"
+                                type="text"
+                                className="input"
+                                autoComplete="given-name"
+                                minLength={2}
+                                maxLength={75}
+                                required
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="field">
+                            <label className="field__label" htmlFor="lastName">Last name</label>
+                            <input
+                                id="lastName"
+                                name="lastName"
+                                type="text"
+                                className="input"
+                                autoComplete="family-name"
+                                minLength={2}
+                                maxLength={75}
+                                required
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                            />
+                        </div>
                     </div>
 
                     <div className="field">
@@ -80,6 +100,28 @@ function RegisterPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
+                    </div>
+
+                    <div className="field">
+                        <label className="field__label" htmlFor="phone">Mobile number</label>
+                        <div className="input-group">
+                            <span className="input-group__prefix" aria-hidden="true">+973</span>
+                            <input
+                                id="phone"
+                                name="phone"
+                                type="tel"
+                                inputMode="numeric"
+                                className="input input-group__field"
+                                autoComplete="tel-national"
+                                placeholder="3XXXXXXX"
+                                pattern="[0-9]{8}"
+                                maxLength={8}
+                                required
+                                aria-describedby="phone-hint"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                            />
+                        </div>
                     </div>
 
                     <div className="field">

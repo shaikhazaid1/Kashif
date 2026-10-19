@@ -1,9 +1,10 @@
 SELECT id,
-       full_name,
+       first_name,
+       last_name,
        email,
-       password_hash,
+       phone,
        role,
-       is_active,
+       password_hash,
        created_at
 FROM public.users
 LIMIT 1000;
