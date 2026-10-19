@@ -4,6 +4,7 @@ import { register } from './authApi.js'
 import './auth.css'
 import PasswordInput from './components/PasswordInput.jsx'
 import PasswordStrength from './components/PasswordStrength.jsx'
+import AuthShowcase from './components/AuthShowcase.jsx'
 
 function RegisterPage() {
     const navigate = useNavigate()
@@ -178,6 +179,7 @@ function RegisterPage() {
                     Already have an account? <Link to="/login">Sign in</Link>
                 </p>
             </section>
+                  <AuthShowcase />
         </div>
     )
 }

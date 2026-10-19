@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { login } from './authApi.js'
 import { Link, useLocation } from 'react-router'
+import AuthShowcase from './components/AuthShowcase.jsx'
 import './auth.css'
 
 function LoginPage() {
@@ -96,6 +97,7 @@ function LoginPage() {
                     Don't have an account? <Link to="/register">Create one</Link>
                 </p>
             </section>
+                  <AuthShowcase />
         </div>
     )
 }
