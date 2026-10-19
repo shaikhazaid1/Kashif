@@ -20,6 +20,13 @@ function App() {
           Backend: {health.status} | Database: {health.database}
         </p>
       )}
+
+            <div className="field">
+        <label className="field__label" htmlFor="demo-email">Email</label>
+        <input id="demo-email" className="input" type="email" placeholder="name@example.com" />
+      </div>
+      <button className="btn btn--primary">Sign in</button>
+      <button className="btn btn--secondary">Cancel</button>
     </main>
   )
 }
