@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+
 from app.auth.models import Role, User
 from app.core.database import get_db
 from app.auth.schemas import LoginRequest, RegisterRequest, UserOut
+from app.auth.dependencies import get_current_user
 
 from app.core.security import (
     ACCESS_TOKEN_MINUTES,
@@ -60,3 +62,7 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
         path="/",
     )
     return {"message": "Login successful", "role": user.role}
+
+@router.get("/me", response_model=UserOut)
+def me(current_user: User = Depends(get_current_user)):
+    return current_user
