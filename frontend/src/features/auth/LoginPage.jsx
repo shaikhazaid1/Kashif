@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { login } from './authApi.js'
 import { Link, useLocation } from 'react-router'
+import { useAuth } from './AuthContext.jsx'
 import AuthShowcase from './components/AuthShowcase.jsx'
 import './auth.css'
 
@@ -11,6 +12,7 @@ function LoginPage() {
     const [success, setSuccess] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const location = useLocation()
+    const { refreshUser } = useAuth()
     const justRegistered = location.state?.registered === true
 
     async function handleSubmit(event) {
@@ -21,6 +23,7 @@ function LoginPage() {
 
         try {
             const data = await login(email, password)
+            await refreshUser()
             setSuccess(`Signed in successfully as ${data.role}.`)
         } catch (err) {
             setError(err.message)

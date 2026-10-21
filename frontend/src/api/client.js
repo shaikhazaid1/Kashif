@@ -1,9 +1,9 @@
-export async function apiPost(path, body) {
+export async function apiRequest(path, { method = 'GET', body } = {}) {
   const response = await fetch(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method,
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
     credentials: 'same-origin',
-    body: JSON.stringify(body),
+    body: body ? JSON.stringify(body) : undefined,
   })
 
   const data = await response.json().catch(() => null)
@@ -13,8 +13,18 @@ export async function apiPost(path, body) {
       typeof data?.detail === 'string'
         ? data.detail
         : 'Something went wrong. Please try again.'
-    throw new Error(message)
+    const error = new Error(message)
+    error.status = response.status
+    throw error
   }
 
   return data
+}
+
+export function apiGet(path) {
+  return apiRequest(path)
+}
+
+export function apiPost(path, body) {
+  return apiRequest(path, { method: 'POST', body })
 }

@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 import { useTheme } from '../hooks/useTheme.js'
+import { useAuth } from '../features/auth/AuthContext.jsx'
 
 function MoonIcon() {
   return (
@@ -21,12 +22,22 @@ function SunIcon() {
 function TopBar() {
   const { theme, toggleTheme } = useTheme()
   const isDark = theme === 'dark'
+  const { user, logout } = useAuth()
 
   return (
     <header className="topbar">
       <Link to="/" className="topbar__brand">Kashif</Link>
 
       <div className="topbar__actions">
+        {user && (
+          <>
+            <span className="topbar__user">{user.first_name}</span>
+            <button type="button" className="topbar__button" onClick={logout}>
+              Sign out
+            </button>
+          </>
+        )}
+
         <button
           type="button"
           className="topbar__button"
