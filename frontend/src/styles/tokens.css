@@ -5,6 +5,7 @@
     --color-on-primary: #FFFFFF;
     --color-overlay: #16304F;
     --color-link: var(--color-primary);
+    --color-primary-hover: #2F5A88;
 
     /* ===== Surfaces ===== */
     --color-bg: #F7F8FA;

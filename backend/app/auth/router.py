@@ -1,11 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth.models import Role, User
 from app.core.database import get_db
 from app.auth.schemas import LoginRequest, RegisterRequest, UserOut
-from app.core.security import DUMMY_HASH, hash_password, verify_password
+
+from app.core.security import (
+    ACCESS_TOKEN_MINUTES,
+    DUMMY_HASH,
+    create_access_token,
+    hash_password,
+    verify_password,
+)
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -31,7 +38,7 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
     return user
 
 @router.post("/login")
-def login(data: LoginRequest, db: Session = Depends(get_db)):
+def login(data: LoginRequest, response: Response, db: Session = Depends(get_db)):
     email = data.email.lower()
     user = db.scalar(select(User).where(User.email == email))
 
@@ -42,4 +49,14 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     if not verify_password(data.password, user.password_hash) or not user.is_active:
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
+    token = create_access_token(str(user.id), user.role.value)
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        samesite="strict",
+        secure=False,
+        max_age=ACCESS_TOKEN_MINUTES * 60,
+        path="/",
+    )
     return {"message": "Login successful", "role": user.role}
