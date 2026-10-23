@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kashif Progress Summary | Iteration 1</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, sans-serif;
+            color: #1f2937;
+            background: #f3f6fb;
+        }
+
+        body {
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        main {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 36px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgb(15 23 42 / 8%);
+        }
+
+        header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            color: #123b65;
+        }
+
+        header p {
+            margin: 0;
+            color: #64748b;
+        }
+
+        section + section {
+            margin-top: 28px;
+        }
+
+        h2 {
+            margin: 0 0 14px;
+            color: #176b87;
+            font-size: 1.25rem;
+        }
+
+        ul {
+            margin: 0;
+            padding-left: 22px;
+        }
+
+        li {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        code {
+            padding: 2px 5px;
+            background: #f1f5f9;
+            border-radius: 4px;
+            font-family: Consolas, monospace;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            vertical-align: top;
+            line-height: 1.6;
+        }
+
+        th {
+            background: #f1f5f9;
+            color: #123b65;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 16px 12px;
+            }
+
+            main {
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <header>
+            <h1>Kashif Progress Summary</h1>
+            <p>Iteration 1: Authentication · 19–23 October 2026</p>
+        </header>
+
+        <section aria-labelledby="environment-heading">
+            <h2 id="environment-heading">1. Environment and Architecture</h2>
+            <ul>
+                <li>Containerised the system with Docker Compose: PostgreSQL 18 database, FastAPI (Python 3.13) backend, and React + Vite frontend.</li>
+                <li>Kept the database off the public network with no published ports. Development access is bound to <code>127.0.0.1</code> only.</li>
+                <li>Stored secrets in <code>.env</code> (excluded from Git) and added a <code>.env.example</code> template.</li>
+                <li>Connected the frontend to the backend through a Vite proxy, so the browser treats them as a single origin.</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="database-heading">
+            <h2 id="database-heading">2. Database</h2>
+            <ul>
+                <li>Created a <code>users</code> table with UUID primary keys, unique email addresses, first and last names, Bahraini mobile numbers in E.164 format (<code>+973</code>), password hashes, roles (<code>citizen</code>, <code>employee</code>, <code>admin</code>), active status, and creation time.</li>
+                <li>Applied data minimisation by collecting only the information the system needs.</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="authentication-heading">
+            <h2 id="authentication-heading">3. Authentication and Authorisation (Backend)</h2>
+            <ul>
+                <li>Added registration with server-side validation using Pydantic.</li>
+                <li>Implemented login with Argon2id password hashing.</li>
+                <li>Issued JWT access tokens using HS256 with a 30-minute expiry, stored in an <code>HttpOnly</code>, <code>SameSite=Strict</code> cookie.</li>
+                <li>Added a <code>/me</code> endpoint and a <code>get_current_user</code> dependency that verifies the token and re-checks the user in the database.</li>
+                <li>Added a <code>POST</code> logout endpoint that clears the cookie.</li>
+                <li>Implemented role-based access control with a reusable <code>require_role()</code> dependency.</li>
+                <li>Added a <code>create_admin</code> CLI script so the first admin can only be created on the server, never through the public API.</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="security-heading">
+            <h2 id="security-heading">4. Security Controls (OWASP Top 10: 2025)</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">OWASP category</th>
+                            <th scope="col">Control implemented</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">A01: Broken Access Control</th>
+                            <td><code>extra="forbid"</code> blocks mass assignment, so <code>role: admin</code> returns 422. Roles are fixed server-side, RBAC returns 403 when access is denied, and UUIDs reduce IDOR risk.</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">A04: Cryptographic Failures</th>
+                            <td>Argon2id password hashing with a per-user salt; sensitive data is not placed in URLs because forms use <code>POST</code>.</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">A05: Injection</th>
+                            <td>Database queries use parameterisation through the SQLAlchemy ORM. React escapes output by default, helping prevent XSS.</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">A07: Authentication Failures</th>
+                            <td>Generic login errors and a dummy hash help prevent user enumeration and timing attacks. Passwords must be at least 12 characters. Tokens are signed and expiring, with the algorithm pinned to block <code>alg: none</code>.</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">A10: Mishandling of Exceptional Conditions</th>
+                            <td>Stack traces are kept in server logs and are never returned to the client.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section aria-labelledby="frontend-heading">
+            <h2 id="frontend-heading">5. Frontend</h2>
+            <ul>
+                <li>Connected login and registration pages to the API, with protected and guest routes.</li>
+                <li>Added a password-strength meter, show/hide toggle, and live password-match check.</li>
+                <li>Created a design system with tokens, components, and per-feature CSS, including light and dark modes.</li>
+                <li>Improved accessibility with labels, ARIA attributes, keyboard focus styles, reduced-motion support, and WCAG AA colour contrast.</li>
+                <li>Added an auto-rotating showcase featuring Bahraini landmarks.</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="testing-heading">
+            <h2 id="testing-heading">6. Testing Evidence</h2>
+            <ul>
+                <li>Duplicate email returns 409; a short password returns 422; and an injected <code>role: admin</code> returns 422.</li>
+                <li>Wrong password and unknown email return the same 401 response.</li>
+                <li><code>document.cookie</code> returns an empty string, confirming the cookie is HttpOnly.</li>
+                <li>A tampered token and a missing token each return 401.</li>
+                <li>A citizen calling a staff endpoint gets 403; an admin gets 200.</li>
+            </ul>
+        </section>
+
+        <section aria-labelledby="next-steps-heading">
+            <h2 id="next-steps-heading">7. Next Steps</h2>
+            <ul>
+                <li>Add TOTP-based MFA for employees and admins.</li>
+                <li>Implement account lockout and rate limiting.</li>
+                <li>Add an audit log.</li>
+                <li>Add Arabic language support with right-to-left (RTL) layout.</li>
+            </ul>
+        </section>
+    </main>
+</body>
+</html>
