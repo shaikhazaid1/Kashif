@@ -7,16 +7,12 @@ from app.auth.models import Role, User
 from app.core.database import get_db
 from app.auth.schemas import LoginRequest, RegisterRequest, UserOut
 from app.auth.dependencies import get_current_user
-
-from app.core.security import (
-    ACCESS_TOKEN_MINUTES,
-    DUMMY_HASH,
-    create_access_token,
-    hash_password,
-    verify_password,
-)
+from app.core.security import DUMMY_HASH, hash_password, verify_password
+from app.auth.cookies import clear_auth_cookies, set_access_cookie, set_mfa_cookie
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+STAFF_ROLES = {Role.employee, Role.admin}
+
 
 
 @router.post("/register", response_model=UserOut, status_code=201)
@@ -51,17 +47,13 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
     if not verify_password(data.password, user.password_hash) or not user.is_active:
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
-    token = create_access_token(str(user.id), user.role.value)
-    response.set_cookie(
-        key="access_token",
-        value=token,
-        httponly=True,
-        samesite="strict",
-        secure=False,
-        max_age=ACCESS_TOKEN_MINUTES * 60,
-        path="/",
-    )
-    return {"message": "Login successful", "role": user.role}
+    if user.role in STAFF_ROLES:
+        set_mfa_cookie(response, user)
+        return {"mfa_required": True, "mfa_setup_required": not user.mfa_enabled}
+
+    set_access_cookie(response, user)
+    return {"mfa_required": False, "role": user.role}
+
 
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
@@ -70,9 +62,4 @@ def me(current_user: User = Depends(get_current_user)):
 
 @router.post("/logout", status_code=204)
 def logout(response: Response):
-    response.delete_cookie(
-        key="access_token",
-        path="/",
-        httponly=True,
-        samesite="strict",
-    )
+    clear_auth_cookies(response)

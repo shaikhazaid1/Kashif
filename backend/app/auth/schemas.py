@@ -29,3 +29,8 @@ class UserOut(BaseModel):
     email: str
     phone: str
     role: Role
+
+
+class MfaCodeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    code: str = Field(pattern=r"^[0-9]{6}$")
