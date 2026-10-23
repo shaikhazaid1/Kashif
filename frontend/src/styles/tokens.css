@@ -26,6 +26,7 @@
 
     /* ===== Typography ===== */
     --font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
     --font-size-sm: 0.875rem;
     --font-size-md: 1rem;
     --font-size-lg: 1.25rem;

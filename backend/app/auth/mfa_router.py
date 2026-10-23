@@ -21,9 +21,10 @@ def mfa_setup(
     if user.mfa_enabled:
         raise HTTPException(status_code=409, detail="MFA is already set up.")
 
-    secret = pyotp.random_base32()
-    user.mfa_secret = secret
-    db.commit()
+    if not user.mfa_secret:
+        user.mfa_secret = pyotp.random_base32()
+        db.commit()
+    secret = user.mfa_secret
 
     otpauth_uri = pyotp.TOTP(secret).provisioning_uri(
         name=user.email, issuer_name=MFA_ISSUER

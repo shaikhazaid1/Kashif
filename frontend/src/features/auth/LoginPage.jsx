@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { login } from './authApi.js'
-import { Link, useLocation } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { useAuth } from './AuthContext.jsx'
 import AuthShowcase from './components/AuthShowcase.jsx'
 import './auth.css'
@@ -13,6 +13,7 @@ function LoginPage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const location = useLocation()
     const { refreshUser } = useAuth()
+    const navigate = useNavigate()
     const justRegistered = location.state?.registered === true
 
     async function handleSubmit(event) {
@@ -20,11 +21,22 @@ function LoginPage() {
         setError('')
         setSuccess('')
         setIsSubmitting(true)
+        
 
         try {
             const data = await login(email, password)
+
+            if (data.mfa_required) {
+                navigate('/mfa', {
+                    state: {
+                        setupRequired: data.mfa_setup_required,
+                        from: location.state?.from,
+                    },
+                })
+                return
+            }
+
             await refreshUser()
-            setSuccess(`Signed in successfully as ${data.role}.`)
         } catch (err) {
             setError(err.message)
         } finally {

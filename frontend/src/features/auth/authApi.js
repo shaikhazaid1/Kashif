@@ -22,3 +22,11 @@ export function getMe() {
 export function logout() {
   return apiPost('/api/auth/logout')
 }
+
+export function setupMfa() {
+  return apiPost('/api/auth/mfa/setup')
+}
+
+export function verifyMfa(code) {
+  return apiPost('/api/auth/mfa/verify', { code })
+}
