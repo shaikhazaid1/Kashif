@@ -6,8 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.models import Role, User
 from app.core.database import get_db
-from app.core.security import decode_access_token
-
+from app.core.security import decode_token
 
 def get_current_user(
     access_token: str | None = Cookie(default=None),
@@ -19,7 +18,7 @@ def get_current_user(
         raise not_authenticated
 
     try:
-        payload = decode_access_token(access_token)
+        payload = decode_token(access_token, "access")
         user_id = uuid.UUID(payload["sub"])
     except (jwt.InvalidTokenError, KeyError, ValueError):
         raise not_authenticated
