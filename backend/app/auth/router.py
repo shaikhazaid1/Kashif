@@ -9,11 +9,12 @@ from app.auth.schemas import LoginRequest, RegisterRequest, UserOut
 from app.auth.dependencies import get_current_user
 from app.core.security import DUMMY_HASH, hash_password, verify_password
 from app.auth.cookies import clear_auth_cookies, set_access_cookie, set_mfa_cookie
+from app.auth.lockout import is_locked, register_failure, register_success
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
-STAFF_ROLES = {Role.employee, Role.admin}
 
 
+#########################(/register)#########################
 
 @router.post("/register", response_model=UserOut, status_code=201)
 def register(data: RegisterRequest, db: Session = Depends(get_db)):
@@ -35,29 +36,44 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
     db.commit()
     return user
 
+
+#########################(/login)#########################
+
+STAFF_ROLES = {Role.employee, Role.admin}
+def invalid_credentials() -> HTTPException:
+    return HTTPException(status_code=401, detail="Invalid email or password.")
+
 @router.post("/login")
 def login(data: LoginRequest, response: Response, db: Session = Depends(get_db)):
     email = data.email.lower()
     user = db.scalar(select(User).where(User.email == email))
 
-    if user is None:
+    if user is None or is_locked(user):
         verify_password(data.password, DUMMY_HASH)
-        raise HTTPException(status_code=401, detail="Invalid email or password.")
+        raise invalid_credentials()
 
-    if not verify_password(data.password, user.password_hash) or not user.is_active:
-        raise HTTPException(status_code=401, detail="Invalid email or password.")
+    if not verify_password(data.password, user.password_hash):
+        register_failure(user, db)
+        raise invalid_credentials()
+
+    if not user.is_active:
+        raise invalid_credentials()
 
     if user.role in STAFF_ROLES:
         set_mfa_cookie(response, user)
         return {"mfa_required": True, "mfa_setup_required": not user.mfa_enabled}
 
+    register_success(user, db)
     set_access_cookie(response, user)
     return {"mfa_required": False, "role": user.role}
 
-
+#########################(/me)#########################
+ 
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+#########################(/logout)#########################
 
 
 @router.post("/logout", status_code=204)

@@ -7,6 +7,7 @@ from app.auth.dependencies import get_mfa_pending_user
 from app.auth.models import User
 from app.auth.schemas import MfaCodeRequest
 from app.core.database import get_db
+from app.auth.lockout import is_locked, register_failure, register_success
 
 router = APIRouter(prefix="/api/auth/mfa", tags=["mfa"])
 
@@ -39,16 +40,23 @@ def mfa_verify(
     user: User = Depends(get_mfa_pending_user),
     db: Session = Depends(get_db),
 ):
+    if is_locked(user):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many failed attempts. Please try again later.",
+        )
+
     if not user.mfa_secret:
         raise HTTPException(status_code=400, detail="MFA is not set up yet.")
 
     if not pyotp.TOTP(user.mfa_secret).verify(data.code, valid_window=1):
+        register_failure(user, db)
         raise HTTPException(status_code=401, detail="Invalid code.")
 
     if not user.mfa_enabled:
         user.mfa_enabled = True
-        db.commit()
 
+    register_success(user, db)
     clear_auth_cookies(response)
     set_access_cookie(response, user)
     return {"message": "Verified", "role": user.role}
