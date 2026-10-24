@@ -4,12 +4,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
+from slowapi.errors import RateLimitExceeded
+
 
 from app.auth import models  # noqa: F401
 from app.auth.router import router as auth_router
 from app.auth.mfa_router import router as mfa_router
 from app.staff.router import router as staff_router
 from app.core.database import Base, engine
+from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 
 
 @asynccontextmanager
@@ -19,6 +22,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Kashif API", lifespan=lifespan)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 app.include_router(auth_router)
 app.include_router(mfa_router)
 app.include_router(staff_router)

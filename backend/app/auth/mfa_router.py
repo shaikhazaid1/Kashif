@@ -1,6 +1,7 @@
 import pyotp
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
+from app.core.rate_limit import limiter
 
 from app.auth.cookies import clear_auth_cookies, set_access_cookie
 from app.auth.dependencies import get_mfa_pending_user
@@ -13,6 +14,9 @@ router = APIRouter(prefix="/api/auth/mfa", tags=["mfa"])
 
 MFA_ISSUER = "Kashif"
 
+
+
+#########################(/setup)#########################
 
 @router.post("/setup")
 def mfa_setup(
@@ -32,9 +36,12 @@ def mfa_setup(
     )
     return {"otpauth_uri": otpauth_uri, "secret": secret}
 
+#########################(/verify)#########################
 
 @router.post("/verify")
+@limiter.limit("5/minute")
 def mfa_verify(
+    request: Request,
     data: MfaCodeRequest,
     response: Response,
     user: User = Depends(get_mfa_pending_user),

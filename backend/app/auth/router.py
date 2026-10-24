@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from app.core.rate_limit import limiter
 
 
 from app.auth.models import Role, User
@@ -17,7 +18,8 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 #########################(/register)#########################
 
 @router.post("/register", response_model=UserOut, status_code=201)
-def register(data: RegisterRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/hour")
+def register(request: Request, data: RegisterRequest, db: Session = Depends(get_db)):
     email = data.email.lower()
 
     existing = db.scalar(select(User).where(User.email == email))
@@ -44,10 +46,13 @@ def invalid_credentials() -> HTTPException:
     return HTTPException(status_code=401, detail="Invalid email or password.")
 
 @router.post("/login")
-def login(data: LoginRequest, response: Response, db: Session = Depends(get_db)):
-    email = data.email.lower()
-    user = db.scalar(select(User).where(User.email == email))
-
+@limiter.limit("5/minute")
+def login(
+    request: Request,
+    data: LoginRequest,
+    response: Response,
+    db: Session = Depends(get_db),
+):
     if user is None or is_locked(user):
         verify_password(data.password, DUMMY_HASH)
         raise invalid_credentials()

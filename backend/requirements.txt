@@ -6,3 +6,4 @@ argon2-cffi #Converts the password into an encrypted fingerprint
 email-validator #Ensure that the email format is correct 
 pyjwt
 pyotp
+slowapi
