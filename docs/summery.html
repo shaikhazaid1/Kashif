@@ -139,6 +139,7 @@
                 <li>Implemented role-based access control with a reusable <code>require_role()</code> dependency.</li>
                 <li>Added a <code>create_admin</code> CLI script so the first admin can only be created on the server, never through the public API.</li>
                 <li>TOTP-based MFA (Microsoft/Google Authenticator) enforced for employees and admins, using a short-lived, path-restricted MFA token, typed JWTs to prevent token confusion, and blocked re-enrolment once MFA is active.</li>
+                <li>Account lockout after 5 failed password or MFA attempts (15 minutes), with a generic error to prevent account enumeration. IP-based rate limiting (SlowAPI) on login, registration and MFA verification to stop brute-force, password spraying and Argon2-based DoS.</li>
             </ul>
         </section>
 

@@ -53,6 +53,10 @@ def login(
     response: Response,
     db: Session = Depends(get_db),
 ):
+
+    email = data.email.lower()
+    user = db.scalar(select(User).where(User.email == email))
+    
     if user is None or is_locked(user):
         verify_password(data.password, DUMMY_HASH)
         raise invalid_credentials()
